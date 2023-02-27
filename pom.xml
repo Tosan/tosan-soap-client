@@ -248,7 +248,7 @@
                 <repository>
                     <id>github</id>
                     <name>GitHub</name>
-                    <url>https://maven.pkg.github.com/Tosan/tosan-httpserver-spring-boot-starter</url>
+                    <url>https://maven.pkg.github.com/Tosan/tosan-soap-client</url>
                 </repository>
             </distributionManagement>
         </profile>
