@@ -16,6 +16,8 @@ import java.util.Properties;
 public class SoapServiceConfig {
     private URL serverUrl;
     private URL endPointUrl;
+    private String username;
+    private String password;
     private boolean onlineWsdl;
     private boolean initialConnection;
     private boolean showLog;
@@ -80,6 +82,8 @@ public class SoapServiceConfig {
                 throw new RuntimeException("Invalid endpoint url", e);
             }
         }
+        username = props.getProperty("username");
+        password = props.getProperty("password");
         initialConnection = Boolean.parseBoolean(props.getProperty("initialConnection"));
         showLog = Boolean.parseBoolean(props.getProperty("showLog"));
         connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout"));
@@ -116,6 +120,22 @@ public class SoapServiceConfig {
 
     public URL getEndPointUrl() {
         return endPointUrl;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public void setEndPointUrl(URL endPointUrl) {

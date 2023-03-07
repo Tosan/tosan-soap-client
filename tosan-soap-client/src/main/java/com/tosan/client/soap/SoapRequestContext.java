@@ -32,11 +32,16 @@ public class SoapRequestContext {
         return provider;
     }
 
+    public void build() {
+        endpointSetting();
+        authenticationSetting();
+        sslSetting();
+        timeoutSetting();
+    }
+
     public static SoapRequestContext build(BindingProvider provider, SoapServiceConfig config) {
         SoapRequestContext requestContext = new SoapRequestContext(provider, config);
-        requestContext.endpointSetting();
-        requestContext.sslSetting();
-        requestContext.timeoutSetting();
+        requestContext.build();
         return requestContext;
     }
 
@@ -44,6 +49,15 @@ public class SoapRequestContext {
         if (!config.isOnlineWsdl()) {
             provider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
                     config.getEndPointUrl().toString());
+        }
+    }
+
+    public void authenticationSetting() {
+        if (config.getUsername() != null && !config.getUsername().isEmpty()) {
+            provider.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, config.getUsername());
+        }
+        if (config.getPassword() != null && !config.getPassword().isEmpty()) {
+            provider.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, config.getPassword());
         }
     }
 
