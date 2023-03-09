@@ -12,7 +12,7 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 
 /**
- * @author Mostafa Abdollahi
+ * @author MosiDev
  * @since 5/24/2014
  */
 public class ConnectionVerifier {

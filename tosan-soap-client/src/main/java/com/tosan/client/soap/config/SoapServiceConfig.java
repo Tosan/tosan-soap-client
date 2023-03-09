@@ -1,6 +1,5 @@
 package com.tosan.client.soap.config;
 
-import javax.xml.ws.WebServiceException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -228,7 +227,7 @@ public class SoapServiceConfig {
         } else if (getEndPointUrl() != null) {
             return getEndPointUrl();
         } else {
-            throw new WebServiceException("Neither of Service url nor endpoint url are valid.");
+            throw new RuntimeException("Neither of Service url nor endpoint url are valid.");
         }
     }
 }

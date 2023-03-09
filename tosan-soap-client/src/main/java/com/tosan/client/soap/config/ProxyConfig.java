@@ -1,7 +1,7 @@
 package com.tosan.client.soap.config;
 
 /**
- * @author Mostafa Abdollahi
+ * @author MosiDev
  * @since 2/21/2023
  */
 public class ProxyConfig {
