@@ -3,12 +3,12 @@ package com.tosan.client.soap;
 import com.sun.xml.ws.developer.JAXWSProperties;
 import com.tosan.client.soap.config.SoapServiceConfig;
 import com.tosan.client.soap.connection.SSLSocketFactoryGenerator;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.WebServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLSocketFactory;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.WebServiceException;
 
 /**
  * @author MosiDev

@@ -1,13 +1,13 @@
 package com.tosan.client.soap.handler;
 
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.soap.SOAPHandler;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.soap.SOAPHandler;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Set;
@@ -33,14 +33,12 @@ public class LogHandler implements SOAPHandler<SOAPMessageContext> {
         OutputStream logStream = new ByteArrayOutputStream();
         try {
             if (request) {
-                logStream.write("Soap Request Message: ".getBytes());
-                msg.writeTo(logStream);
-                logger.info(LogEncryptor.encrypt(logStream.toString(), securedParameterNames));
+                logStream.write("Soap Request: ".getBytes());
             } else {
-                logStream.write("Soap Response Message: ".getBytes());
-                msg.writeTo(logStream);
-                logger.info(LogEncryptor.encrypt(logStream.toString(), securedParameterNames));
+                logStream.write("Soap Response: ".getBytes());
             }
+            msg.writeTo(logStream);
+            logger.info(LogEncryptor.encrypt(logStream.toString(), securedParameterNames));
         } catch (Exception e) {
             logger.info("Error in logger: ", e);
         }
