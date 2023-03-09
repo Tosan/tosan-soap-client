@@ -4,7 +4,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
- * @author Mostafa Abdollahi
+ * @author MosiDev
  * @since 2/21/2023
  */
 public class SSLConfig {
