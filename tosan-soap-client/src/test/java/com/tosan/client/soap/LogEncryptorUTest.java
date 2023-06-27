@@ -24,6 +24,20 @@ public class LogEncryptorUTest {
     }
 
     @Test
+    public void testNullTag() {
+        String input = "<xml><class>block</class></xml>";
+        String output = "<xml><class>block</class></xml>";
+        assertEquals(output, LogEncryptor.encrypt(input, null));
+    }
+
+    @Test
+    public void testEmptyTag() {
+        String input = "<xml><class>block</class></xml>";
+        String output = "<xml><class>block</class></xml>";
+        assertEquals(output, LogEncryptor.encrypt(input, new HashSet<>()));
+    }
+
+    @Test
     public void testEmptyString() {
         assertEquals("", LogEncryptor.encrypt("", ENCRYPTED_TAGS));
     }

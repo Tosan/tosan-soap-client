@@ -13,6 +13,9 @@ import java.util.regex.Pattern;
 public class LogEncryptor {
 
     public static String encrypt(String input, Set<String> secureParameters) {
+        if (secureParameters == null || secureParameters.isEmpty()) {
+            return input;
+        }
         Pattern pattern = Pattern.compile("<([^<>]+)>([^<>]+)</\\1>");
         Matcher matcher = pattern.matcher(input);
         while (matcher.find()) {
