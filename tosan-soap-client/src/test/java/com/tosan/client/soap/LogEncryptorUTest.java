@@ -223,4 +223,18 @@ public class LogEncryptorUTest {
         String output = "<s:OTP1><XML><pan>ENCRYPTED</pan></XML></s:OTP1>";
         assertEquals(output, LogEncryptor.encrypt(input, ENCRYPTED_TAGS));
     }
+
+    @Test
+    public void testEncryptSensitiveKeyValue() {
+        String input = "<context><data><key>pan</key><value>6218234512341235</value></data></context>";
+        String output = "<context><data><key>pan</key><value>ENCRYPTED</value></data></context>";
+        assertEquals(output, LogEncryptor.encrypt(input, ENCRYPTED_TAGS));
+    }
+
+    @Test
+    public void testNotEncryptNormalKeyValue() {
+        String input = "<context><data><key>test</key><value>123456789</value></data></context>";
+        String output = "<context><data><key>test</key><value>123456789</value></data></context>";
+        assertEquals(output, LogEncryptor.encrypt(input, ENCRYPTED_TAGS));
+    }
 }
