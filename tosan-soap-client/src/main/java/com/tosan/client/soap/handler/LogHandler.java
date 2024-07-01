@@ -49,10 +49,10 @@ public class LogHandler implements SOAPHandler<SOAPMessageContext> {
         try {
             msg.writeTo(logStream);
             if (request) {
-                logParams.put("Soap Request", getBody(logStream));
+                logParams.put("soap-request", getBody(logStream));
                 startTimeMillis.set(System.currentTimeMillis());
             } else {
-                logParams.put("Soap Response", getBody(logStream));
+                logParams.put("soap-response", getBody(logStream));
                 logParams.put("duration", getDurationLogMessage());
             }
             logger.info(mapper.writeValueAsString(logParams));
@@ -76,7 +76,7 @@ public class LogHandler implements SOAPHandler<SOAPMessageContext> {
             OutputStream logStream = new ByteArrayOutputStream();
             msg.writeTo(logStream);
             Map<String, String> params = new LinkedHashMap<>();
-            params.put("Soap Fault", getBody(logStream));
+            params.put("soap-fault", getBody(logStream));
             params.put("duration", getDurationLogMessage());
             logger.info(mapper.writeValueAsString(params));
         } catch (Exception e) {
