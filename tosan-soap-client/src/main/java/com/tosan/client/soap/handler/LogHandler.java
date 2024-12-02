@@ -25,7 +25,7 @@ import java.util.Set;
 public class LogHandler implements SOAPHandler<SOAPMessageContext> {
     private static final Logger logger = LoggerFactory.getLogger(LogHandler.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    public static final String ENDPOINT_KEY = "jakarta.xml.ws.service.endpoint.address";
+    private static final String ENDPOINT_KEY = "jakarta.xml.ws.service.endpoint.address";
     private Set<String> securedParameterNames;
     ThreadLocal<Long> startTimeMillis = new ThreadLocal<>();
 
