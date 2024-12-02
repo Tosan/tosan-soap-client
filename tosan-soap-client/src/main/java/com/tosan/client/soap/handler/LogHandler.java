@@ -25,6 +25,7 @@ import java.util.Set;
 public class LogHandler implements SOAPHandler<SOAPMessageContext> {
     private static final Logger logger = LoggerFactory.getLogger(LogHandler.class);
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static final String ENDPOINT_KEY = "jakarta.xml.ws.service.endpoint.address";
     private Set<String> securedParameterNames;
     ThreadLocal<Long> startTimeMillis = new ThreadLocal<>();
 
@@ -34,6 +35,7 @@ public class LogHandler implements SOAPHandler<SOAPMessageContext> {
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
+
     public LogHandler() {
     }
 
@@ -49,10 +51,11 @@ public class LogHandler implements SOAPHandler<SOAPMessageContext> {
         try {
             msg.writeTo(logStream);
             if (request) {
-                logParams.put("soap-request", getBody(logStream));
+                logParams.put("endPoint", messageContext.get(ENDPOINT_KEY).toString());
+                logParams.put("soapRequest", getBody(logStream));
                 startTimeMillis.set(System.currentTimeMillis());
             } else {
-                logParams.put("soap-response", getBody(logStream));
+                logParams.put("soapResponse", getBody(logStream));
                 logParams.put("duration", getDurationLogMessage());
             }
             logger.info(mapper.writeValueAsString(logParams));
