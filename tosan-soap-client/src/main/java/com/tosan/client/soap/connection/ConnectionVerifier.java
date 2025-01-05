@@ -42,7 +42,8 @@ public class ConnectionVerifier {
         try {
             if (config.isInitialConnection()) {
                 if (serverUrl.getProtocol().equals("https")) {
-                    HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> hostname.equals(serverUrl.getHost()));
+                    HttpsURLConnection.setDefaultHostnameVerifier((hostname, session)
+                            -> hostname.equals(session.getPeerHost()));
                     testHttpsConnection(config, serverUrl);
                 } else {
                     testHttpConnection(config, serverUrl);
