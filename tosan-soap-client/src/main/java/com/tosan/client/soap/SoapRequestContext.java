@@ -8,6 +8,7 @@ import jakarta.xml.ws.WebServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
@@ -86,6 +87,8 @@ public class SoapRequestContext {
             String truststorePassword = config.getSsl().getTruststorePassword();
             String keystorePassword = config.getSsl().getKeystorePassword();
             String truststoreAlias = config.getSsl().getTruststoreAlias();
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session)
+                    -> hostname.equals(session.getPeerHost()));
 
             try {
                 SSLSocketFactory socketFactory = new SSLSocketFactoryGenerator(sslContext,
