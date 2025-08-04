@@ -1,6 +1,7 @@
 package com.tosan.client.soap;
 
 import com.tosan.client.soap.config.SoapServiceConfig;
+import io.opentelemetry.api.trace.Tracer;
 
 import java.net.URL;
 
@@ -14,9 +15,16 @@ import java.net.URL;
 public abstract class SoapServiceProvider<T, V extends SoapServiceConfig> {
     protected V config;
     private T service;
+    private final Tracer tracer;
 
     public SoapServiceProvider(V config) {
         this.config = config;
+        this.tracer = null;
+    }
+
+    public SoapServiceProvider(V config, Tracer tracer) {
+        this.config = config;
+        this.tracer = tracer;
     }
 
     /**
@@ -29,12 +37,14 @@ public abstract class SoapServiceProvider<T, V extends SoapServiceConfig> {
         if (service == null) {
             synchronized (this) {
                 if (service == null) {
-                    service = getServiceSoap(config);
+                    service = getServiceSoap(config, tracer);
                 }
             }
         }
         return service;
     }
+
+    protected abstract T getServiceSoap(V config, Tracer tracer);
 
     protected abstract T getServiceSoap(V config);
 

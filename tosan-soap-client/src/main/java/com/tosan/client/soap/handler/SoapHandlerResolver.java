@@ -1,5 +1,6 @@
 package com.tosan.client.soap.handler;
 
+import io.opentelemetry.api.trace.Tracer;
 import jakarta.xml.ws.handler.Handler;
 import jakarta.xml.ws.handler.HandlerResolver;
 import jakarta.xml.ws.handler.PortInfo;
@@ -15,14 +16,18 @@ import java.util.Set;
 public class SoapHandlerResolver implements HandlerResolver {
     private final boolean showLog;
     private final Set<String> secureParameters;
+    private final Tracer tracer;
+    private final String clientName;
 
     public SoapHandlerResolver(boolean showLog) {
-        this(showLog, null);
+        this(showLog, null, null, null);
     }
 
-    public SoapHandlerResolver(boolean showLog, Set<String> secureParameters) {
+    public SoapHandlerResolver(boolean showLog, Set<String> secureParameters, Tracer tracer, String clientName) {
         this.showLog = showLog;
         this.secureParameters = secureParameters;
+        this.tracer = tracer;
+        this.clientName = clientName;
     }
 
     @SuppressWarnings("rawtypes")
@@ -32,6 +37,8 @@ public class SoapHandlerResolver implements HandlerResolver {
         if (showLog) {
             LogHandler logHandler = new LogHandler(secureParameters);
             handlerChain.add(logHandler);
+            MonitoringHandler monitoringHandler = new MonitoringHandler(tracer, clientName);
+            handlerChain.add(monitoringHandler);
         }
         return handlerChain;
     }
