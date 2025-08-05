@@ -10,6 +10,8 @@ import jakarta.xml.soap.SOAPMessage;
 import jakarta.xml.ws.handler.MessageContext;
 import jakarta.xml.ws.handler.soap.SOAPHandler;
 import jakarta.xml.ws.handler.soap.SOAPMessageContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.namespace.QName;
 import java.util.Collections;
@@ -20,15 +22,18 @@ import java.util.Set;
  * @since 5/24/2014
  */
 public class MonitoringHandler implements SOAPHandler<SOAPMessageContext> {
-    public static final String SOAP_REQUEST_PREFIX = "SOAP Request: ";
+    public static final String SOAP_REQUEST = "soap request";
     public static final String SOAP_OPERATION = "soap.operation";
     public static final String OTEL_SPAN = "otel.span";
     public static final String OTEL_SCOPE = "otel.scope";
     private static final String ENDPOINT_KEY = "jakarta.xml.ws.service.endpoint.address";
-    public static final String URI = "http.url";
+    public static final String HTTP_URL = "http.url";
+    public static final String URI = "uri";
     public static final String OUTCOME = "outcome";
     public static final String ERROR = "ERROR";
     public static final String CLIENT_NAME = "client.name";
+    public static final String SUCCESS = "SUCCESS";
+    private static final Logger log = LoggerFactory.getLogger(MonitoringHandler.class);
 
     private final Tracer tracer;
     private final String clientName;
@@ -52,7 +57,7 @@ public class MonitoringHandler implements SOAPHandler<SOAPMessageContext> {
     private void startSpan(SOAPMessageContext context) {
         QName operation = (QName) context.get(SOAPMessageContext.WSDL_OPERATION);
         String operationName = operation != null ? operation.getLocalPart() : "Unknown";
-        Span span = tracer.spanBuilder(SOAP_REQUEST_PREFIX)
+        Span span = tracer.spanBuilder(SOAP_REQUEST)
                 .setSpanKind(SpanKind.CLIENT)
                 .setParent(io.opentelemetry.context.Context.current())
                 .startSpan();
@@ -60,9 +65,10 @@ public class MonitoringHandler implements SOAPHandler<SOAPMessageContext> {
         Scope scope = span.makeCurrent();
         context.put(OTEL_SPAN, span);
         context.put(OTEL_SCOPE, scope);
-        String uri = context.get(ENDPOINT_KEY).toString();
-        span.setAttribute(URI, uri);
-        String clientNameValue = clientName != null ? clientName : uri;
+        String url = context.get(ENDPOINT_KEY).toString();
+        span.setAttribute(HTTP_URL, url);
+        span.setAttribute(URI, url);
+        String clientNameValue = clientName != null ? clientName : url;
         span.setAttribute(CLIENT_NAME, clientNameValue);
     }
 
@@ -74,7 +80,7 @@ public class MonitoringHandler implements SOAPHandler<SOAPMessageContext> {
                 span.setAttribute(OUTCOME, ERROR);
                 span.setStatus(StatusCode.ERROR);
             } else {
-                span.setAttribute(OUTCOME, "SUCCESS");
+                span.setAttribute(OUTCOME, SUCCESS);
                 span.setStatus(StatusCode.OK);
             }
         } catch (SOAPException e) {
@@ -107,7 +113,9 @@ public class MonitoringHandler implements SOAPHandler<SOAPMessageContext> {
             try {
                 span.recordException(new RuntimeException(context.getMessage().getSOAPBody().getFault().getFaultCode()));
             } catch (SOAPException e) {
-                throw new RuntimeException("UnknownFaultCode");
+                log.info("error in monitoring handler: ", e);
+                span.setAttribute(OUTCOME, ERROR);
+                span.setStatus(StatusCode.ERROR);
             }
             span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR);
             span.end();

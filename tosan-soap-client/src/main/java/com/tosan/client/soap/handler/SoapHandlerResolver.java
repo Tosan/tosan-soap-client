@@ -23,6 +23,13 @@ public class SoapHandlerResolver implements HandlerResolver {
         this(showLog, null, null, null);
     }
 
+    public SoapHandlerResolver(boolean showLog, Set<String> secureParameters) {
+        this.showLog = showLog;
+        this.secureParameters = secureParameters;
+        tracer = null;
+        clientName = null;
+    }
+
     public SoapHandlerResolver(boolean showLog, Set<String> secureParameters, Tracer tracer, String clientName) {
         this.showLog = showLog;
         this.secureParameters = secureParameters;
@@ -34,11 +41,13 @@ public class SoapHandlerResolver implements HandlerResolver {
     @Override
     public List<Handler> getHandlerChain(PortInfo portInfo) {
         List<Handler> handlerChain = new ArrayList<>();
+        if (tracer != null) {
+            MonitoringHandler monitoringHandler = new MonitoringHandler(tracer, clientName);
+            handlerChain.add(monitoringHandler);
+        }
         if (showLog) {
             LogHandler logHandler = new LogHandler(secureParameters);
             handlerChain.add(logHandler);
-            MonitoringHandler monitoringHandler = new MonitoringHandler(tracer, clientName);
-            handlerChain.add(monitoringHandler);
         }
         return handlerChain;
     }
