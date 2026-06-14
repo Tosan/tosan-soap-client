@@ -8,7 +8,10 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * @author MosiDev
@@ -82,7 +85,7 @@ public class SSLSocketFactoryGenerator {
         } else if (keystoreByteArray != null && keystoreByteArray.length != 0) {
             keyManagers = getKeyManagers(false);
         }
-        TrustManager[] trustManagers = new TrustManager[0];
+        TrustManager[] trustManagers = null;
         if (truststore != null && !truststore.isEmpty()) {
             trustManagers = getTrustManagers(true);
         } else if (truststoreByteArray != null && truststoreByteArray.length != 0) {
@@ -123,29 +126,74 @@ public class SSLSocketFactoryGenerator {
 
     protected TrustManager[] getTrustManagers(boolean isFilePath) throws IOException, GeneralSecurityException {
         String alg = TrustManagerFactory.getDefaultAlgorithm();
-        TrustManagerFactory tmFact = TrustManagerFactory.getInstance(alg);
 
         KeyStore ks = KeyStore.getInstance("jks");
+        char[] truststorePasswordChars = truststorePassword != null ? truststorePassword.toCharArray() : null;
         if (isFilePath) {
-            FileInputStream fis = new FileInputStream(truststore);
-            ks.load(fis, truststorePassword.toCharArray());
-            fis.close();
+            try (FileInputStream fis = new FileInputStream(truststore)) {
+                ks.load(fis, truststorePasswordChars);
+            }
         } else {
-            InputStream inputStream = new ByteArrayInputStream(truststoreByteArray);
-            ks.load(inputStream, truststorePassword.toCharArray());
-            inputStream.close();
+            ks.load(new ByteArrayInputStream(truststoreByteArray), truststorePasswordChars);
         }
+
+        KeyStore effectiveStore = ks;
         if (truststoreAlias != null) {
-            KeyStore newKeyStore;
             Certificate certificate = ks.getCertificate(truststoreAlias);
-            newKeyStore = KeyStore.getInstance("jks");
-            newKeyStore.load(null, new char[]{});
-            tmFact.init(newKeyStore);
-            newKeyStore.setCertificateEntry("certificate", certificate);
-            tmFact.init(newKeyStore);
-        } else {
-            tmFact.init(ks);
+            if (certificate == null) {
+                throw new KeyStoreException("Alias '" + truststoreAlias + "' not found in truststore");
+            }
+            effectiveStore = KeyStore.getInstance("jks");
+            effectiveStore.load(null, new char[]{});
+            effectiveStore.setCertificateEntry("certificate", certificate);
         }
-        return tmFact.getTrustManagers();
+
+        TrustManagerFactory customTmf = TrustManagerFactory.getInstance(alg);
+        customTmf.init(effectiveStore);
+        X509TrustManager customTm = (X509TrustManager) customTmf.getTrustManagers()[0];
+
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(alg);
+        trustManagerFactory.init((KeyStore) null);
+        X509TrustManager defaultTm = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+
+        return new TrustManager[]{new CompositeX509TrustManager(customTm, defaultTm)};
+    }
+
+    private static class CompositeX509TrustManager implements X509TrustManager {
+        private final X509TrustManager primary;
+        private final X509TrustManager fallback;
+
+        CompositeX509TrustManager(X509TrustManager primary, X509TrustManager fallback) {
+            this.primary = primary;
+            this.fallback = fallback;
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            X509Certificate[] primaryIssuers = primary.getAcceptedIssuers();
+            X509Certificate[] fallbackIssuers = fallback.getAcceptedIssuers();
+            X509Certificate[] combined = new X509Certificate[primaryIssuers.length + fallbackIssuers.length];
+            System.arraycopy(primaryIssuers, 0, combined, 0, primaryIssuers.length);
+            System.arraycopy(fallbackIssuers, 0, combined, primaryIssuers.length, fallbackIssuers.length);
+            return combined;
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            try {
+                primary.checkClientTrusted(chain, authType);
+            } catch (CertificateException e) {
+                fallback.checkClientTrusted(chain, authType);
+            }
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            try {
+                primary.checkServerTrusted(chain, authType);
+            } catch (CertificateException e) {
+                fallback.checkServerTrusted(chain, authType);
+            }
+        }
     }
 }
